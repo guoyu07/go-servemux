@@ -22,7 +22,7 @@
 
 <br/><br/>
 
-Fast, elegant **golang 1.7** net/http Router, takes advantage of the new `context` package.
+Fast and elegant <b>go1.7</b> Router, takes advantage of the new `context` package.
 
 </p>
 
@@ -116,13 +116,13 @@ Features
 - Focus on high performance
 - Robust routing
 - Middleware
-      servemux.Handle("GET", "/hi", middleware1, handler, middleware2) or servemux.Use(middleware1); servemux.Handle("GET", "/hi", handler); servemux.Done(middleware2)
+      `servemux.Handle("GET", "/hi", middleware1, handler, middleware2)` or `servemux.Use(middleware1); servemux.Handle("GET", "/hi", handler); servemux.Done(middleware2)`
 - Named routes
-      servemux.Get(...)("myroute")) with servemux.Lookup("myroute").Path
+      `servemux.Get(...)("myroute"))` with `servemux.Lookup("myroute").Path`
 - Group of routes
-      g := servemux.Party(...)
+      `g := servemux.Party(...)`
 - Subdomains
-      d := servemux.Party("mysubdomain.")
+      `d := servemux.Party("mysubdomain.")`
 - What's next? `Don't worry, I cover you`
 
 <img src="https://raw.githubusercontent.com/iris-contrib/website/gh-pages/assets/arrowdown.png" width="72"/>
