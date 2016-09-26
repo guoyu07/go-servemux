@@ -105,7 +105,7 @@ mux.HandleFunc(http.MethodGet, "/hi_func", func(res http.ResponseWriter, req *ht
 Installation
 ------------
 
-The only requirement is the [Go Programming Language](https://golang.org/dl).
+The only requirement is the [Go Programming Language](https://golang.org/dl), at least v1.7.
 
 ```bash
 $ go get -u github.com/kataras/go-servemux
