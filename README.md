@@ -22,7 +22,7 @@
 
 <br/><br/>
 
-Fast and elegant <b>go1.7</b> Router, takes advantage of the new `context` package.
+The fastest http router for Go Programming Language. ServeMux takes advantage of the new <i>context</i> package.
 
 </p>
 
