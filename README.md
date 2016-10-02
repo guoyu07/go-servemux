@@ -14,7 +14,7 @@
 
 
 
- <a href="https://github.com/kataras/go-servemux/releases"><img src="https://img.shields.io/badge/%20release%20-%200.0.1-blue.svg?style=flat-square" alt="Releases"></a>
+ <a href="https://github.com/kataras/go-servemux/releases"><img src="https://img.shields.io/badge/%20release%20-%200.0.2-blue.svg?style=flat-square" alt="Releases"></a>
 
  <a href="https://godoc.org/github.com/kataras/go-servemux"><img src="https://img.shields.io/badge/%20docs-reference-5272B4.svg?style=flat-square" alt="godocs"></a>
 
@@ -146,7 +146,7 @@ Explore [these questions](https://github.com/kataras/go-servemux/issues?go-serve
 Versioning
 ------------
 
-Current: v0.0.1
+Current: v0.0.2
 
 Read more about Semantic Versioning 2.0.0
 

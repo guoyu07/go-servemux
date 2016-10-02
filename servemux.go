@@ -14,7 +14,7 @@ import (
 
 const (
 	// Version is the current version of the servemux package
-	Version = "0.0.1"
+	Version = "0.0.2"
 )
 
 var (
@@ -715,7 +715,6 @@ type (
 		// ex: mysubdomain.
 		subdomain string
 		entry     *muxEntry
-		next      *muxTree
 	}
 
 	// ServeMux the Go 1.7 serve mux
@@ -723,7 +722,7 @@ type (
 		MuxAPI
 		Lookups   []*NamedRoute
 		maxParams uint8
-		tree      *muxTree
+		garden    []*muxTree
 		mu        sync.Mutex
 		hosts     bool // taken from routes
 		Errors    map[int]http.Handler
@@ -779,16 +778,14 @@ func (mux *ServeMux) Lookup(routeName string) *NamedRoute {
 	return nil
 }
 
-func (mux *ServeMux) getTree(method string, subdomain string) (tree *muxTree) {
-	tree = mux.tree
-	for tree != nil {
-		if tree.method == method && tree.subdomain == subdomain {
-			return
+func (mux *ServeMux) getTree(method string, subdomain string) *muxTree {
+	for i := range mux.garden {
+		t := mux.garden[i]
+		if t.method == method && t.subdomain == subdomain {
+			return t
 		}
-		tree = tree.next
 	}
-	// tree is nil here, return that.
-	return
+	return nil
 }
 
 var errSubdomainsEmptyHost = errors.New("You passed a subdomain route but you didn't set the Host option on the mux.New declaration")
@@ -812,21 +809,8 @@ func (mux *ServeMux) register(method string, subdomain string, path string, hand
 	tree := mux.getTree(r.Method, r.Subdomain)
 	if tree == nil {
 		//first time we register a route to this method with this domain
-		tree = &muxTree{method: r.Method, subdomain: r.Subdomain, entry: &muxEntry{}, next: nil}
-		if mux.tree == nil {
-			// it's the first entry
-			mux.tree = tree
-		} else {
-			// find the last tree and make the .next to the tree we created before
-			lastTree := mux.tree
-			for lastTree != nil {
-				if lastTree.next == nil {
-					lastTree.next = tree
-					break
-				}
-				lastTree = lastTree.next
-			}
-		}
+		tree = &muxTree{method: r.Method, subdomain: r.Subdomain, entry: &muxEntry{}}
+		mux.garden = append(mux.garden, tree)
 	}
 	// I decide that it's better to explicit give subdomain and a path to it than registedPath(mysubdomain./something) now its: subdomain: mysubdomain., path: /something
 	// we have different tree for each of subdomains, now you can use everything you can use with the normal paths ( before you couldn't set /any/*path)
@@ -848,14 +832,9 @@ func ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
 // ServeHTTP is the Router, which is the http.Handler you should pass to your server
 func (mux *ServeMux) ServeHTTP(res http.ResponseWriter, req *http.Request) {
-	tree := mux.tree
-
-	for tree != nil {
+	for i := range mux.garden {
+		tree := mux.garden[i]
 		if !mux.MethodEqual(tree.method, req.Method) {
-			// we break any CORS OPTIONS method
-			// but for performance reasons if user wants http method OPTIONS to be served
-			// then must register it with .Options(...)
-			tree = tree.next
 			continue
 		}
 		// we have at least one subdomain on the root
@@ -868,7 +847,6 @@ func (mux *ServeMux) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 				// so the host must be api.mydomain.com:8080
 				if tree.subdomain+mux.Host != requestHost {
 					// go to the next tree, we have a subdomain but it is not the correct
-					tree = tree.next
 					continue
 				}
 
@@ -1085,6 +1063,14 @@ func (api *muxAPI) Handle(method string, registedPath string, handlers ...http.H
 	if dotWSlashIdx := strings.Index(path, subdomainIndicator); dotWSlashIdx > 0 {
 		subdomain = fullpath[0 : dotWSlashIdx+1] // admin.
 		path = fullpath[dotWSlashIdx+1:]         // /
+	}
+	// we splitted the path and subdomain parts so we're ready to check only the path, otherwise we will had problems with subdomains
+	// remove last "/" if any, "/xyz/"
+	if len(path) > 1 { // if it's the root, then keep it*
+		if path[len(path)-1] == slashByte {
+			// ok we are inside /xyz/
+			path = path[0 : len(path)-1]
+		}
 	}
 
 	path = strings.Replace(path, "//", "/", -1) // fix the path if double //
